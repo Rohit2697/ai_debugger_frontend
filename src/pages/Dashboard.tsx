@@ -14,6 +14,9 @@ import { Trash2 } from "lucide-react";
 export default function Dashboard() {
     const navigate = useNavigate()
     const { logout } = useAuthStore()
+    const { clearChatHistory } = useChatStore()
+    const { clearAnalysis } = useAnalysisStore()
+    const { clearSessions } = useSessionStore()
     const { selectSession, sessions, fetchSessions, selectedSession, deleteSession } = useSessionStore()
 
     const { fetchAnalysis, createAnalysis, deleteAnalysis } = useAnalysisStore()
@@ -42,6 +45,9 @@ export default function Dashboard() {
 
     }
     const handleLogout = () => {
+        clearSessions();
+        clearAnalysis();
+        clearChatHistory();
         logout()
         navigate("/login", { replace: true })
     }
@@ -50,53 +56,74 @@ export default function Dashboard() {
         <div className="min-h-screen bg-slate-50 text-slate-900">
             <div className="max-w-7xl mx-auto p-4">
                 <header className="mb-4 flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold">Debug Sessions</h1>
-                    <div className="flex flex-col items-end">
-                        <div className="text-sm text-slate-600">Review sessions and analyses</div>
-                        <button className="p-2 mt-2 text-sm rounded-md bg-red-600 text-white hover:brightness-105 disabled:opacity-60" onClick={handleLogout}>
+
+                    {/* Left */}
+                    <div>
+                        <h1 className="text-2xl font-semibold text-slate-800">
+                            Debug Sessions
+                        </h1>
+                        <p className="text-sm text-slate-500">
+                            Review sessions and analyses
+                        </p>
+                    </div>
+
+                    {/* Right */}
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleLogout}
+                            className="px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:brightness-105 transition"
+                        >
                             Logout
-                        </button></div>
+                        </button>
+                    </div>
 
                 </header>
                 <div className="flex gap-4">
+
                     {/* Sidebar */}
-                    <aside className="w-72 bg-white border rounded-lg shadow-sm overflow-hidden">
+                    <aside className="w-72 bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col">
+
+                        {/* Header */}
                         <div className="px-4 py-3 border-b flex items-center justify-between">
-                            <div className="text-sm font-medium">Sessions</div>
+                            <div className="text-sm font-semibold text-slate-700">Sessions</div>
+
                             <button
                                 onClick={() => setIsNewOpen(true)}
                                 aria-label="Add session"
-                                className="inline-flex items-center justify-center h-8 w-8 rounded-md bg-orange-500 text-white hover:brightness-95"
+                                className="inline-flex items-center justify-center h-8 w-8 rounded-md bg-orange-500 text-white hover:brightness-95 transition"
                                 title="Add session"
                             >
                                 <span className="text-lg font-bold">+</span>
                             </button>
                         </div>
-                        <ul role="list" className="divide-y">
+
+                        {/* List */}
+                        <ul role="list" className="divide-y overflow-y-auto flex-1">
                             {sessions.map((s) => {
                                 const active = s._id === selectedSession?._id;
+
                                 return (
                                     <li key={s._id}>
                                         <button
                                             onClick={() => selectSession(s)}
-                                            className={`w-full text-left px-4 py-3 hover:bg-orange-50 focus:outline-none flex items-center justify-between ${active ? "bg-orange-100" : ""
-                                                }`}
+                                            className={`group w-full text-left px-4 py-3 flex items-center justify-between transition
+              ${active ? "bg-orange-100" : "hover:bg-orange-50"}`}
                                             aria-current={active ? "true" : undefined}
                                         >
-                                            {/* Left */}
+                                            {/* Title */}
                                             <div className="min-w-0">
                                                 <div className="font-medium text-slate-800 truncate">
                                                     {s.title}
                                                 </div>
                                             </div>
 
-                                            {/* Right (Delete Icon) */}
+                                            {/* Delete (on hover) */}
                                             <span
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleDelete(s._id);
                                                 }}
-                                                className="ml-3 text-red-500 hover:text-red-700 cursor-pointer"
+                                                className="ml-3 text-red-500 hover:text-red-700 cursor-pointer opacity-0 group-hover:opacity-100 transition"
                                             >
                                                 <Trash2 size={18} />
                                             </span>
@@ -106,67 +133,108 @@ export default function Dashboard() {
                             })}
                         </ul>
                     </aside>
+
                     {/* Main */}
                     <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {/* Analysis Card (left in right area) */}
-                        <section aria-labelledby="analysis-heading" className="bg-white border rounded-lg p-4 shadow-sm">
+
+                        {/* Analysis Card */}
+                        <section
+                            aria-labelledby="analysis-heading"
+                            className="bg-white border rounded-lg p-4 shadow-sm space-y-4"
+                        >
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <h2 id="analysis-heading" className="text-lg font-semibold">
+                                    <h2 id="analysis-heading" className="text-lg font-semibold text-slate-800">
                                         Analysis
                                     </h2>
-                                    <p className="text-sm text-slate-500">Session: {selectedSession?.title}</p>
+                                    <p className="text-sm text-slate-500">
+                                        {selectedSession ? `Session: ${selectedSession.title}` : "No session selected"}
+                                    </p>
                                 </div>
-                                <div className="text-sm text-slate-400">{selectedSession?._id}</div>
-                            </div>
-                            <AnalysisEditor
 
-                                onOpenChat={() => setIsChatOpen(true)}
-                            />
+                                {selectedSession && (
+                                    <div className="text-xs text-slate-400 truncate max-w-[120px]">
+                                        {selectedSession._id}
+                                    </div>
+                                )}
+                            </div>
+
+                            <AnalysisEditor onOpenChat={() => setIsChatOpen(true)} isAnalyzing={isAnalyzing} />
                         </section>
-                        {/* Session Card (right in the right area) */}
-                        <section aria-labelledby="session-heading" className="bg-white border rounded-lg p-4 shadow-sm">
+
+                        {/* Session Card */}
+                        <section
+                            aria-labelledby="session-heading"
+                            className="bg-white border rounded-lg p-4 shadow-sm space-y-4"
+                        >
+                            {/* Header */}
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <h2 id="session-heading" className="text-lg font-semibold">
-                                        {selectedSession?.title}
+                                    <h2 className="text-lg font-semibold text-slate-800">
+                                        {selectedSession?.title || "No Session Selected"}
                                     </h2>
-                                    <p className="text-sm text-slate-600">{selectedSession?.context}</p>
+                                    <p className="text-sm text-slate-500 mt-1">
+                                        {selectedSession?.context || "Select or create a session to begin"}
+                                    </p>
                                 </div>
-                                <div className="text-sm text-slate-500">Error</div>
+
+                                <span className="text-xs px-2 py-1 rounded bg-red-100 text-red-600 font-medium">
+                                    Error
+                                </span>
                             </div>
-                            <div className="mt-4">
-                                <div className="rounded-md bg-red-50 border border-red-100 p-3 text-sm text-red-800">
-                                    {selectedSession?.errorMessage}
-                                </div>
-                            </div>
-                            <pre className="mt-4 relative bg-slate-900 text-slate-100 rounded-md p-4 text-sm overflow-auto">
-                                <code>{selectedSession?.codeSnippet}</code>
-                                <div className="absolute top-2 right-2 flex gap-2">
-                                    <CopyButton text={selectedSession?.codeSnippet ?? ""} />
-                                </div>
-                            </pre>
-                            <div className="mt-4">
-                                <div className="rounded-md bg-violet-50 border border-violet-100 p-3 text-sm text-violet-800">
-                                    Language: {selectedSession?.language}
+
+                            {/* Error */}
+                            <div>
+                                <div className="text-xs text-slate-500 mb-1">Error Message</div>
+                                <div className="rounded-md bg-red-50 border border-red-100 p-3 text-sm text-red-800 whitespace-pre-wrap min-h-[60px]">
+                                    {selectedSession?.errorMessage || "No error message provided"}
                                 </div>
                             </div>
-                            <div className="mt-4 flex gap-2">
+
+                            {/* Code */}
+                            <div>
+                                <div className="text-xs text-slate-500 mb-1">Code</div>
+                                <div className="relative">
+                                    <pre className="bg-slate-900 text-slate-100 rounded-md p-4 text-sm overflow-auto min-h-[120px]">
+                                        <code>
+                                            {selectedSession?.codeSnippet ?? "// code will appear here"}
+                                        </code>
+                                    </pre>
+
+                                    <div className="absolute top-2 right-2 flex gap-2">
+                                        <CopyButton text={selectedSession?.codeSnippet ?? ""} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Language */}
+                            <div>
+                                <div className="text-xs text-slate-500 mb-1">Language</div>
+                                <div className="inline-block px-3 py-1 text-sm rounded-md bg-violet-50 border border-violet-100 text-violet-700 font-medium">
+                                    {selectedSession?.language || "N/A"}
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-2 pt-2">
                                 <button
                                     onClick={() => handleAnalyze(selectedSession)}
-                                    className="inline-flex items-center px-4 py-2 rounded-md bg-orange-500 text-white hover:brightness-105 disabled:opacity-60"
-                                    disabled={isAnalyzing}
+                                    disabled={!selectedSession || isAnalyzing}
+                                    className="inline-flex items-center px-4 py-2 rounded-md bg-orange-500 text-white hover:brightness-105 disabled:opacity-60 transition"
                                 >
                                     {isAnalyzing ? "Analyzing..." : "Analyze"}
                                 </button>
+
                                 <button
                                     onClick={() => setIsChatOpen(true)}
-                                    className="inline-flex items-center px-4 py-2 border rounded-md text-white bg-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                    disabled={!selectedSession}
+                                    className="inline-flex items-center px-4 py-2 border rounded-md text-white bg-gray-500 hover:bg-gray-100 hover:text-gray-900 transition disabled:opacity-60"
                                 >
                                     Chat
                                 </button>
                             </div>
                         </section>
+
                     </main>
                 </div>
             </div>

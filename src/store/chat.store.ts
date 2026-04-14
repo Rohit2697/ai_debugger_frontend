@@ -12,6 +12,7 @@ interface ChatState {
     fetchChatHistory: (sessionId: string) => Promise<void>;
     sendMessage: (sessionId: string, message: string) => Promise<void>;
     deleteChatHistory: (sessionId: string) => Promise<void>;
+    clearChatHistory: () => void;
 }
 
 
@@ -50,5 +51,6 @@ export const useChatStore = create<ChatState>((set) => ({
             console.error('Error deleting chat history:', error);
             throw error
         }
-    }
+    },
+    clearChatHistory: () => set({ messages: [] })
 }))

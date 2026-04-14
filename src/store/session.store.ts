@@ -18,6 +18,7 @@ interface SessionState {
     createSession: (data: any) => Promise<void>;
     selectSession: (session: Session) => void;
     deleteSession: (sessionId: string) => Promise<void>;
+    clearSessions: () => void;
 
 }
 
@@ -40,6 +41,7 @@ export const useSessionStore = create<SessionState>((set) => ({
         try {
             const response = await api.post('/sessions', data);
             set((state) => ({ sessions: [...state.sessions, response.data] }));
+            set({ selectedSession: response.data })
         } catch (error) {
             console.error('Error creating session:', error);
             throw error
@@ -57,5 +59,6 @@ export const useSessionStore = create<SessionState>((set) => ({
             console.error('Error deleting session:', error);
             throw error
         }
-    }
+    },
+    clearSessions: () => set({ sessions: [], selectedSession: null }),
 }));

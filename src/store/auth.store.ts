@@ -14,7 +14,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     expiresAt: localStorage.getItem('expiresAt') || '',
     login: async (email, password) => {
         const res = await api.post('/auth/login', { email, password })
-        
+
         localStorage.setItem('token', res.data.accessToken)
         localStorage.setItem('expiresAt', res.data.expriresAT)
         set({ token: res.data.accessToken, expiresAt: res.data.expriresAT })
@@ -26,6 +26,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         localStorage.removeItem('token')
         localStorage.removeItem('expiresAt')
         set({ token: null, expiresAt: '' })
+
+
     }
 })
 )

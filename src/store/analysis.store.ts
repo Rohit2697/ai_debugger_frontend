@@ -15,6 +15,7 @@ interface AnalysisState {
     fetchAnalysis: (sessionId: string) => Promise<Analysis | null>;
     createAnalysis: (sessionId: string) => Promise<void>;
     deleteAnalysis: (sessionId: string) => Promise<void>;
+    clearAnalysis: () => void;
 }
 
 export const useAnalysisStore = create<AnalysisState>((set) => ({
@@ -52,6 +53,6 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
         } catch (error) {
             console.error('Error deleting analysis:', error);
         }
-    }
+    }, clearAnalysis: () => set({ analysis: null })
 }))
 

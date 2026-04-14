@@ -1,6 +1,7 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import {SignInPage,SignUpPage} from './pages/AuthPages';
+import { Analytics } from '@vercel/analytics/react';
 
 import DashBoardPage from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -9,18 +10,21 @@ function App() {
 
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path='/login' element={<SignInPage />} />
-        <Route path='/signup' element={<SignUpPage />} />
-        <Route path='/' element={
-          <ProtectedRoute>
-            <DashBoardPage />
-          </ProtectedRoute>
-        } />
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route path='/login' element={<SignInPage />} />
+          <Route path='/signup' element={<SignUpPage />} />
+          <Route path='/' element={
+            <ProtectedRoute>
+              <DashBoardPage />
+            </ProtectedRoute>
+          } />
 
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+      <Analytics />
+    </>
   );
 }
 
